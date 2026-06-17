@@ -1,3 +1,4 @@
-Flask
-discord.py-self
+flask
+discord.py
 aiohttp
+gunicorn
