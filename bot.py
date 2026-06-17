@@ -8,45 +8,36 @@ import re
 import sys
 import traceback
 
-# ===================== FUNÇÃO PARA LER TOKEN =====================
+# ===================== LER TOKEN =====================
 def ler_token():
-    """Lê o token de várias fontes e retorna"""
-    
-    # 1. Tenta variável de ambiente
     token = os.getenv('BOT_TOKEN')
     if token:
         token = token.strip()
         print(f"[OK] Token via variável de ambiente (tamanho: {len(token)})")
         return token
     
-    # 2. Tenta argumento da linha de comando
     if len(sys.argv) > 1:
         token = sys.argv[1].strip()
         if token:
             print(f"[OK] Token via argumento (tamanho: {len(token)})")
             return token
     
-    # 3. Tenta arquivo (fallback)
     try:
-        token_paths = ['/tmp/temp_token.txt', 'temp_token.txt']
-        for path in token_paths:
-            if os.path.exists(path):
-                with open(path, 'r', encoding='utf-8') as f:
-                    token = f.read().strip()
-                    if token:
-                        print(f"[OK] Token via arquivo (tamanho: {len(token)})")
-                        return token
+        with open('temp_token.txt', 'r', encoding='utf-8') as f:
+            token = f.read().strip()
+            if token:
+                print(f"[OK] Token via arquivo (tamanho: {len(token)})")
+                return token
     except:
         pass
     
-    print("[ERRO] Token não encontrado em nenhuma fonte!")
+    print("[ERRO] Token não encontrado!")
     return None
 
-# ===================== DEFINIR O TOKEN GLOBALMENTE =====================
 TOKEN = ler_token()
 
 if not TOKEN:
-    print("[ERRO] Token não encontrado! Encerrando...")
+    print("[ERRO] Token não encontrado!")
     sys.exit(1)
 
 # ===================== CONFIGURACOES =====================
@@ -76,9 +67,8 @@ intents.guilds = True
 
 bot = commands.Bot(
     command_prefix=PREFIX, 
-    self_bot=True, 
-    help_command=None,
-    intents=intents
+    self_bot=True,  # ← Funciona na versão 1.7.3
+    help_command=None
 )
 
 clicados = set()
