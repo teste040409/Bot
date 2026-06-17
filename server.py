@@ -2,18 +2,15 @@ from flask import Flask, request, render_template_string, jsonify
 import subprocess
 import os
 import time
-import sys
-import signal
 import threading
 import logging
-import json
 
-# Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 bot_process = None
+bot_thread = None
 
 # Template HTML (embutido para facilitar)
 HTML_TEMPLATE = """
@@ -341,27 +338,13 @@ HTML_TEMPLATE = """
 </html>
 """
 
-@app.route('/')
-def index():
-    return render_template_string(HTML_TEMPLATE)
-
-@app.route('/start', methods=['POST'])
-def start_bot():
+def run_bot(token):
+    """Roda o bot em uma thread separada"""
     global bot_process
     
-    data = request.json
-    token = data.get('token')
-    
-    if not token:
-        return jsonify({'error': 'Token nao fornecido'}), 400
-    
-    if bot_process and bot_process.poll() is None:
-        return jsonify({'error': 'Bot ja esta rodando'}), 400
-    
     try:
-        # Configurar ambiente com o token
         env = os.environ.copy()
-        env['BOT_TOKEN'] = token  # ← Token como variável de ambiente
+        env['BOT_TOKEN'] = token
         
         bot_process = subprocess.Popen(
             ['python', 'bot.py'],
@@ -371,17 +354,42 @@ def start_bot():
             bufsize=1,
             encoding='utf-8',
             errors='replace',
-            env=env  # ← Passa o ambiente com o token
+            env=env
         )
         
-        # Aguardar 3 segundos para ver se inicia
+        # Aguarda o bot terminar (nunca termina)
+        bot_process.wait()
+        
+    except Exception as e:
+        logger.error(f"Erro no bot: {e}")
+    finally:
+        bot_process = None
+
+@app.route('/start', methods=['POST'])
+def start_bot():
+    global bot_thread
+    
+    data = request.json
+    token = data.get('token')
+    
+    if not token:
+        return jsonify({'error': 'Token não fornecido'}), 400
+    
+    if bot_thread and bot_thread.is_alive():
+        return jsonify({'error': 'Bot já está rodando'}), 400
+    
+    try:
+        # Inicia o bot em uma thread separada
+        bot_thread = threading.Thread(target=run_bot, args=(token,))
+        bot_thread.daemon = True
+        bot_thread.start()
+        
         time.sleep(3)
         
-        if bot_process.poll() is not None:
-            output, _ = bot_process.communicate()
-            return jsonify({'error': f'Falha ao iniciar: {output[:500]}'}), 500
+        if bot_process and bot_process.poll() is not None:
+            return jsonify({'error': 'Falha ao iniciar o bot'}), 500
         
-        logger.info(f"Bot iniciado com sucesso! PID: {bot_process.pid}")
+        logger.info("Bot iniciado com sucesso!")
         return jsonify({'status': 'Self-bot iniciado com sucesso!'})
         
     except Exception as e:
@@ -396,31 +404,26 @@ def stop_bot():
         try:
             bot_process.terminate()
             bot_process.wait(timeout=5)
-            logger.info("Bot finalizado com sucesso")
+            bot_process = None
+            logger.info("Bot finalizado")
         except:
             try:
                 bot_process.kill()
-                logger.info("Bot finalizado com kill")
+                bot_process = None
             except:
                 pass
-        finally:
-            bot_process = None
         return jsonify({'status': 'Self-bot parado'})
     
     return jsonify({'error': 'Nenhum bot rodando'}), 400
 
 @app.route('/status', methods=['GET'])
 def status_bot():
-    global bot_process
-    
     if bot_process and bot_process.poll() is None:
         return jsonify({'running': True})
     return jsonify({'running': False})
 
 @app.route('/logs', methods=['GET'])
 def get_logs():
-    global bot_process
-    
     logs = []
     if bot_process and bot_process.poll() is None:
         try:
@@ -432,15 +435,13 @@ def get_logs():
                     break
         except:
             pass
-    
     return jsonify({'logs': logs})
 
-@app.route('/health', methods=['GET'])
+@app.route('/health')
 def health_check():
-    """Endpoint para health check do Render"""
     return jsonify({'status': 'ok'}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    logger.info(f"Iniciando servidor na porta {port}")
+    logger.info(f"Servidor rodando na porta {port}")
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
