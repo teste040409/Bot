@@ -359,21 +359,24 @@ def start_bot():
         return jsonify({'error': 'Bot ja esta rodando'}), 400
     
     try:
-        # Passar token como argumento para o bot.py
+        # Configurar ambiente com o token
+        env = os.environ.copy()
+        env['BOT_TOKEN'] = token  # ← Token como variável de ambiente
+        
         bot_process = subprocess.Popen(
-            ['python', 'bot.py', token],  # ← Token passado como argumento
+            ['python', 'bot.py'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
             encoding='utf-8',
-            errors='replace'
+            errors='replace',
+            env=env  # ← Passa o ambiente com o token
         )
         
         # Aguardar 3 segundos para ver se inicia
         time.sleep(3)
         
-        # Verificar se o processo ainda está rodando
         if bot_process.poll() is not None:
             output, _ = bot_process.communicate()
             return jsonify({'error': f'Falha ao iniciar: {output[:500]}'}), 500
