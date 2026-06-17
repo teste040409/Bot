@@ -10,27 +10,37 @@ import traceback
 
 # ===================== LER TOKEN =====================
 def ler_token():
-    # Tenta variável de ambiente primeiro
+    """Lê o token de várias fontes e limpa"""
+    
+    # 1. Tenta variável de ambiente
     token = os.getenv('BOT_TOKEN')
     if token:
-        print("[OK] Token recebido via variável de ambiente")
+        token = token.strip()  # Remove espaços e quebras de linha
+        print(f"[OK] Token via variável de ambiente (tamanho: {len(token)})")
         return token
     
-    # Tenta argumento da linha de comando
+    # 2. Tenta argumento da linha de comando
     if len(sys.argv) > 1:
-        token = sys.argv[1]
+        token = sys.argv[1].strip()
         if token:
-            print("[OK] Token recebido via argumento")
+            print(f"[OK] Token via argumento (tamanho: {len(token)})")
             return token
     
-    print("[ERRO] Token não encontrado!")
+    # 3. Tenta arquivo (fallback)
+    try:
+        token_paths = ['/tmp/temp_token.txt', 'temp_token.txt']
+        for path in token_paths:
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as f:
+                    token = f.read().strip()
+                    if token:
+                        print(f"[OK] Token via arquivo (tamanho: {len(token)})")
+                        return token
+    except:
+        pass
+    
+    print("[ERRO] Token não encontrado em nenhuma fonte!")
     return None
-
-TOKEN = ler_token()
-
-if not TOKEN:
-    print("[ERRO] Token não encontrado!")
-    sys.exit(1)
 
 # ===================== CONFIGURACOES =====================
 WEBHOOK_URL = "https://discord.com/api/webhooks/1503269462781202433/t3UawMFCz0D2hqOiu3K189pJFy_ARDYHrXxNLz9nMyBKKMA2WzwIUJnJASfzqSDmpcU-"
