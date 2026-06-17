@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Bot Discord Runner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+        }
+
+        .logo span {
+            color: #7289da;
+        }
+
+        .logo p {
+            color: #b9bbbe;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            color: #b9bbbe;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Courier New', monospace;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #7289da;
+            box-shadow: 0 0 0 2px rgba(114, 137, 218, 0.2);
+        }
+
+        textarea::placeholder {
+            color: #6a6a7a;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #7289da;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #5b6fbf;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(114, 137, 218, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-success {
+            background: #2ecc71;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+            box-shadow: 0 5px 20px rgba(46, 204, 113, 0.4);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status.running {
+            display: block;
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+
+        .status.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+
+        .status.info {
+            display: block;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+            color: #3498db;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group .btn {
+            flex: 1;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 3px solid #7289da;
+        }
+
+        .info-box h4 {
+            color: #7289da;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #b9bbbe;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-box code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #7289da;
+            font-size: 12px;
+        }
+
+        .security-note {
+            color: #f39c12;
+            font-size: 12px;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .console-output {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #00ff00;
+            display: none;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .console-output.active {
+            display: block;
+        }
+
+        .console-output .error {
+            color: #ff4444;
+        }
+
+        .console-output .success {
+            color: #44ff44;
+        }
+
+        .console-output .info {
+            color: #4488ff;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .button-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🤖 Self-Bot <span>Runner</span></h1>
+            <p>Cole o token e execute seu self-bot no navegador</p>
+        </div>
+
+        <div class="form-group">
+            <label>📝 Token da sua conta:</label>
+            <textarea id="tokenInput" placeholder="Cole o token da sua conta Discord aqui..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-success" id="startBtn">▶️ Iniciar Self-Bot</button>
+            <button class="btn btn-danger" id="stopBtn" disabled>⏹️ Parar</button>
+        </div>
+
+        <div class="status" id="status"></div>
+        <div class="console-output" id="consoleOutput"></div>
+
+        <div class="info-box">
+            <h4>⚠️ Atenção:</h4>
+            <p>
+                • Isso é um <strong>SELF-BOT</strong> (usa sua própria conta)<br>
+                • Roda completamente no seu navegador<br>
+                • Seu token NUNCA é enviado para servidores externos<br>
+                • Use por sua conta e risco (viola os ToS do Discord)
+            </p>
+        </div>
+
+        <div class="security-note">
+            🔒 Seu token permanece apenas no seu navegador
+        </div>
+    </div>
+
+    <script>
+        let pyodide = null;
+        let botRunning = false;
+        let botTask = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const tokenInput = document.getElementById('tokenInput');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const statusDiv = document.getElementById('status');
+            const consoleOutput = document.getElementById('consoleOutput');
+
+            // Carregar Pyodide
+            showStatus('info', '🔄 Carregando ambiente Python...');
+            consoleOutput.classList.add('active');
+            appendConsole('🔄 Carregando Pyodide...', 'info');
+
+            try {
+                pyodide = await loadPyodide({
+                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
+                });
+                
+                appendConsole('✅ Pyodide carregado!', 'success');
+                
+                // Instalar pacotes
+                appendConsole('📦 Instalando pacotes...', 'info');
+                await pyodide.runPythonAsync(`
+                    import micropip
+                    await micropip.install('discord.py')
+                `);
+                
+                appendConsole('✅ Pacotes instalados!', 'success');
+                showStatus('info', '✅ Ambiente pronto! Cole o token e inicie.');
+                setTimeout(() => statusDiv.style.display = 'none', 2000);
+                
+            } catch (error) {
+                appendConsole(`❌ Erro: ${error.message}`, 'error');
+                showStatus('error', '❌ Erro ao carregar Python: ' + error.message);
+            }
+
+            // Iniciar Self-Bot
+            startBtn.addEventListener('click', async function() {
+                const token = tokenInput.value.trim();
+                
+                if (!token) {
+                    showStatus('error', '❌ Cole o token da sua conta!');
+                    return;
+                }
+
+                if (token.length < 20) {
+                    showStatus('error', '❌ Token inválido!');
+                    return;
+                }
+
+                if (botRunning) {
+                    showStatus('error', '❌ Self-bot já está rodando!');
+                    return;
+                }
+
+                try {
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = '<span class="loading"></span> Iniciando...';
+                    showStatus('info', '🚀 Iniciando self-bot...');
+                    appendConsole('🚀 Iniciando self-bot...', 'info');
+
+                    // Código do seu self-bot adaptado
+                    const pythonCode = `
+import asyncio
+import discord
+from discord.ext import commands
+import sys
+import io
+import re
+import random
+
+# Redirecionar output
+old_stdout = sys.stdout
+sys.stdout = io.StringIO()
+
+TOKEN = "${token}"
+PREFIX = "."
+
+# Configurar self-bot
+bot = commands.Bot(command_prefix=PREFIX, self_bot=True, help_command=None)
+
+@bot.event
+async def on_ready():
+    print(f"✅ Self-bot conectado como: {bot.user}")
+    print(f"📊 Em {len(bot.guilds)} servidores")
+    print(f"💡 Prefixo: {PREFIX}")
+    print("🎯 Self-bot pronto para uso!")
+
+@bot.command()
+async def ping(ctx):
+    """Testar se o bot está respondendo"""
+    await ctx.send(f"🏓 Pong! Latência: {round(bot.latency * 1000)}ms")
+
+@bot.command()
+async def servers(ctx):
+    """Listar servidores que você está"""
+    servers_list = "\\n".join([f"• {guild.name} ({guild.id})" for guild in bot.guilds[:10]])
+    await ctx.send(f"📊 Você está em {len(bot.guilds)} servidores:\\n{servers_list}")
+
+@bot.event
+async def on_message(message):
+    if message.author.id == bot.user.id:
+        await bot.process_commands(message)
+
+# Função para capturar output
+def get_output():
+    output = sys.stdout.getvalue()
+    if output:
+        sys.stdout.seek(0)
+        sys.stdout.truncate(0)
+    return output
+
+# Iniciar
+async def main():
+    try:
+        print("🤖 Iniciando self-bot...")
+        await bot.start(TOKEN)
+    except discord.LoginFailure:
+        print("❌ Token inválido! Verifique se está correto.")
+    except Exception as e:
+        print(f"❌ Erro: {e}")
+
+# Executar no loop existente
+loop = asyncio.get_event_loop()
+task = loop.create_task(main())
+task
+`;
+
+                    // Executar o código
+                    const result = await pyodide.runPythonAsync(pythonCode);
+                    botTask = result;
+                    botRunning = true;
+                    
+                    showStatus('running', '✅ Self-bot iniciado com sucesso!');
+                    appendConsole('✅ Self-bot iniciado!', 'success');
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    
+                    // Monitorar output
+                    monitorOutput();
+
+                } catch (error) {
+                    const errorMsg = error.message || 'Erro desconhecido';
+                    showStatus('error', '❌ Erro ao iniciar: ' + errorMsg);
+                    appendConsole(`❌ Erro: ${errorMsg}`, 'error');
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '▶️ Iniciar Self-Bot';
+                }
+            });
+
+            // Parar Self-Bot
+            stopBtn.addEventListener('click', function() {
+                if (botRunning && botTask) {
+                    try {
+                        pyodide.runPython(`
+                            try:
+                                task.cancel()
+                                print("⏹️ Self-bot parado")
+                            except:
+                                pass
+                        `);
+                        botRunning = false;
+                        botTask = null;
+                        showStatus('info', '⏹️ Self-bot parado');
+                        appendConsole('⏹️ Self-bot parado manualmente', 'info');
+                        startBtn.disabled = false;
+                        startBtn.innerHTML = '▶️ Iniciar Self-Bot';
+                        stopBtn.disabled = true;
+                    } catch (error) {
+                        showStatus('error', '❌ Erro ao parar: ' + error.message);
+                    }
+                }
+            });
+
+            function monitorOutput() {
+                if (!botRunning) return;
+                
+                try {
+                    const output = pyodide.runPython(`
+                        import sys
+                        output = sys.stdout.getvalue()
+                        if output:
+                            sys.stdout.seek(0)
+                            sys.stdout.truncate(0)
+                        output
+                    `);
+                    
+                    if (output) {
+                        appendConsole(output, 'info');
+                    }
+                } catch (e) {
+                    // Ignorar
+                }
+                
+                if (botRunning) {
+                    setTimeout(monitorOutput, 1000);
+                }
+            }
+
+            function appendConsole(text, type = 'info') {
+                const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+                consoleOutput.innerHTML += `<div class="${className}">${text}</div>`;
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }
+
+            function showStatus(type, message) {
+                statusDiv.className = 'status ' + type;
+                statusDiv.textContent = message;
+                statusDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
