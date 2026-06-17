@@ -70,9 +70,8 @@ intents.dm_messages = True
 # Cria o bot (self_bot=True funciona com intents na versão 2.x)
 bot = commands.Bot(
     command_prefix=PREFIX, 
-    self_bot=True, 
-    help_command=None,
-    intents=intents  # ← ADICIONADO
+    self_bot=True,  # ← Funciona na 1.7.3
+    help_command=None
 )
 
 clicados = set()
