@@ -61,7 +61,6 @@ state = {
 
 # ===================== CRIAR BOT =====================
 intents = discord.Intents.default()
-intents.message_content = True
 intents.members = True
 intents.guilds = True
 intents.messages = True
