@@ -64,11 +64,15 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 intents.guilds = True
+intents.messages = True
+intents.dm_messages = True
 
+# Cria o bot (self_bot=True funciona com intents na versão 2.x)
 bot = commands.Bot(
     command_prefix=PREFIX, 
-    self_bot=True,  # ← Funciona na versão 1.7.3
-    help_command=None
+    self_bot=True, 
+    help_command=None,
+    intents=intents  # ← ADICIONADO
 )
 
 clicados = set()
