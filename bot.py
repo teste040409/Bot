@@ -8,10 +8,23 @@ import re
 import sys
 import traceback
 
-# ===================== LER TOKEN DO ARQUIVO =====================
+# ===================== LER TOKEN =====================
 def ler_token():
+    # Primeiro tenta argumento da linha de comando
+    if len(sys.argv) > 1:
+        token = sys.argv[1]
+        if token:
+            print("[OK] Token recebido via argumento")
+            return token
+    
+    # Depois tenta variável de ambiente
+    token = os.getenv('BOT_TOKEN')
+    if token:
+        print("[OK] Token recebido via variável de ambiente")
+        return token
+    
+    # Por último tenta o arquivo (fallback)
     try:
-        # No Render, usar /tmp/
         token_path = '/tmp/temp_token.txt'
         if not os.path.exists(token_path):
             token_path = 'temp_token.txt'
@@ -19,17 +32,18 @@ def ler_token():
         with open(token_path, 'r', encoding='utf-8') as f:
             token = f.read().strip()
             if token:
+                print("[OK] Token recebido via arquivo")
                 return token
-            print("[ERRO] Arquivo temp_token.txt esta vazio!")
-            return None
-    except FileNotFoundError:
-        print("[ERRO] Arquivo temp_token.txt nao encontrado!")
-        return None
+    except:
+        pass
+    
+    print("[ERRO] Token não encontrado!")
+    return None
 
 TOKEN = ler_token()
 
 if not TOKEN:
-    print("[ERRO] Token nao encontrado!")
+    print("[ERRO] Token não encontrado!")
     sys.exit(1)
 
 # ===================== CONFIGURACOES =====================
@@ -62,6 +76,9 @@ filas_entradas_log = []
 CORES_RGB = ["\033[1;35m", "\033[1;36m", "\033[1;32m", "\033[1;33m", "\033[1;34m", "\033[1;37m"]
 RED = "\033[1;31m"
 RESET = "\033[0m"
+
+# [RESTO DO SEU CÓDIGO IGUAL - MANTENHA TODAS AS FUNÇÕES]
+# ... (mantenha tudo igual daqui pra baixo)
 
 # ===================== FUNCOES =====================
 async def atualizar_status_bot():
