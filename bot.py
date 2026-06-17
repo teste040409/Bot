@@ -10,32 +10,18 @@ import traceback
 
 # ===================== LER TOKEN =====================
 def ler_token():
-    # Primeiro tenta argumento da linha de comando
-    if len(sys.argv) > 1:
-        token = sys.argv[1]
-        if token:
-            print("[OK] Token recebido via argumento")
-            return token
-    
-    # Depois tenta variável de ambiente
+    # Tenta variável de ambiente primeiro
     token = os.getenv('BOT_TOKEN')
     if token:
         print("[OK] Token recebido via variável de ambiente")
         return token
     
-    # Por último tenta o arquivo (fallback)
-    try:
-        token_path = '/tmp/temp_token.txt'
-        if not os.path.exists(token_path):
-            token_path = 'temp_token.txt'
-            
-        with open(token_path, 'r', encoding='utf-8') as f:
-            token = f.read().strip()
-            if token:
-                print("[OK] Token recebido via arquivo")
-                return token
-    except:
-        pass
+    # Tenta argumento da linha de comando
+    if len(sys.argv) > 1:
+        token = sys.argv[1]
+        if token:
+            print("[OK] Token recebido via argumento")
+            return token
     
     print("[ERRO] Token não encontrado!")
     return None
