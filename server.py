@@ -6,6 +6,7 @@ import sys
 import signal
 import threading
 import logging
+import json
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -358,13 +359,9 @@ def start_bot():
         return jsonify({'error': 'Bot ja esta rodando'}), 400
     
     try:
-        # Salvar token
-        with open('/tmp/temp_token.txt', 'w', encoding='utf-8') as f:
-            f.write(token)
-        
-        # Iniciar o bot em background
+        # Passar token como argumento para o bot.py
         bot_process = subprocess.Popen(
-            ['python', 'bot.py'],
+            ['python', 'bot.py', token],  # ← Token passado como argumento
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
