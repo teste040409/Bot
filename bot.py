@@ -59,20 +59,15 @@ state = {
     "ultima_msg_fila_id": None
 }
 
-# ===================== CRIAR BOT =====================
-intents = discord.Intents.default()
-intents.members = True
-intents.guilds = True
-intents.messages = True
-intents.dm_messages = True
-
-# Cria o bot (self_bot=True funciona com intents na versão 2.x)
+# ===================== CRIAR BOT - VERSÃO 1.7.3 =====================
+# IMPORTANTE: SEM intents, SEM nada extra
 bot = commands.Bot(
     command_prefix=PREFIX, 
-    self_bot=True,  # ← Funciona na 1.7.3
+    self_bot=True,  # ← SÓ FUNCIONA NA 1.7.3
     help_command=None
 )
 
+# ===================== FUNÇÕES =====================
 clicados = set()
 em_fila = set()
 salas_detectadas_log = []
@@ -82,12 +77,7 @@ CORES_RGB = ["\033[1;35m", "\033[1;36m", "\033[1;32m", "\033[1;33m", "\033[1;34m
 RED = "\033[1;31m"
 RESET = "\033[0m"
 
-# [RESTO DO SEU CÓDIGO IGUAL - MANTENHA TODAS AS FUNÇÕES]
-# ... (mantenha tudo igual daqui pra baixo)
-
-# ===================== FUNCOES =====================
 async def atualizar_status_bot():
-    """Atualiza o status do bot com o valor atual da aposta"""
     texto_status = f"Bet: R${state['valor_aposta']} - Mando fotinha"
     try:
         await bot.change_presence(
@@ -251,7 +241,6 @@ async def on_ready():
     print("[+] MODO .5 INICIADO AUTOMATICAMENTE!")
     print("=" * 60)
 
-    # Log no webhook
     msg_on = f"""BOT V172 carregada com sucesso.
 Conta: {bot.user}
 Total de Servidores: {len(bot.guilds)}
@@ -268,10 +257,8 @@ MODO .5 AUTOMATICO INICIADO AUTOMATICAMENTE!"""
     except:
         pass
 
-    # Atualizar status
     await atualizar_status_bot()
 
-    # ===================== INICIAR MODO .5 AUTOMATICAMENTE =====================
     print("\n[OK] INICIANDO MODO .5 AUTOMATICO AUTOMATICAMENTE!")
     state["auto_ciclo"] = True
     bot.loop.create_task(ciclo_auto())
