@@ -8,14 +8,14 @@ import re
 import sys
 import traceback
 
-# ===================== LER TOKEN =====================
+# ===================== FUNÇÃO PARA LER TOKEN =====================
 def ler_token():
-    """Lê o token de várias fontes e limpa"""
+    """Lê o token de várias fontes e retorna"""
     
     # 1. Tenta variável de ambiente
     token = os.getenv('BOT_TOKEN')
     if token:
-        token = token.strip()  # Remove espaços e quebras de linha
+        token = token.strip()
         print(f"[OK] Token via variável de ambiente (tamanho: {len(token)})")
         return token
     
@@ -42,6 +42,13 @@ def ler_token():
     print("[ERRO] Token não encontrado em nenhuma fonte!")
     return None
 
+# ===================== DEFINIR O TOKEN GLOBALMENTE =====================
+TOKEN = ler_token()
+
+if not TOKEN:
+    print("[ERRO] Token não encontrado! Encerrando...")
+    sys.exit(1)
+
 # ===================== CONFIGURACOES =====================
 WEBHOOK_URL = "https://discord.com/api/webhooks/1503269462781202433/t3UawMFCz0D2hqOiu3K189pJFy_ARDYHrXxNLz9nMyBKKMA2WzwIUJnJASfzqSDmpcU-"
 WEBHOOK_BAN_URL = "https://discord.com/api/webhooks/1503670255376142517/yzTCvchmHp7N6qUj6vvvc4DTkZScOctfR7PbN0fN59Z_YnijdLl7HjUbbCJ-zapV9Wtk"
@@ -61,17 +68,17 @@ state = {
     "ultima_msg_fila_id": None
 }
 
-# Define as intenções (permissões que o bot vai usar)
+# ===================== CRIAR BOT =====================
 intents = discord.Intents.default()
-intents.message_content = True  # Permite ler conteúdo das mensagens
-intents.members = True          # Permite ver membros dos servidores
+intents.message_content = True
+intents.members = True
+intents.guilds = True
 
-# Cria o bot com as intenções
 bot = commands.Bot(
     command_prefix=PREFIX, 
     self_bot=True, 
     help_command=None,
-    intents=intents  # ← ADICIONE ISSO
+    intents=intents
 )
 
 clicados = set()
