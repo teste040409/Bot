@@ -5,6 +5,7 @@ import time
 import threading
 import logging
 
+# Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ app = Flask(__name__)
 bot_process = None
 bot_thread = None
 
-# Template HTML (embutido para facilitar)
+# ===================== HTML TEMPLATE =====================
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -138,7 +139,6 @@ HTML_TEMPLATE = """
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 600px) { .container { padding: 20px; } .button-group { flex-direction: column; } }
         
-        /* Estilo para o status do servidor */
         .server-status {
             background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
@@ -178,11 +178,11 @@ HTML_TEMPLATE = """
         </div>
 
         <div class="info-box">
-            <h4>ATENCAO:</h4>
+            <h4>ATENÇÃO:</h4>
             <p>
-                * Isso eh um SELF-BOT (usa sua propria conta)<br>
+                * Isso é um SELF-BOT (usa sua própria conta)<br>
                 * O bot roda no servidor remoto<br>
-                * Seu token NUNCA eh compartilhado<br>
+                * Seu token NUNCA é compartilhado<br>
                 * Use por sua conta e risco (viola os ToS do Discord)
             </p>
         </div>
@@ -205,14 +205,12 @@ HTML_TEMPLATE = """
             const statusDiv = document.getElementById('status');
             const consoleOutput = document.getElementById('consoleOutput');
 
-            // Carregar token salvo
             const savedToken = localStorage.getItem('discord_token');
             if (savedToken) {
                 tokenInput.value = savedToken;
                 showStatus('info', 'Token carregado do navegador');
             }
 
-            // Verificar status inicial
             checkBotStatus();
 
             startBtn.addEventListener('click', async function() {
@@ -224,7 +222,7 @@ HTML_TEMPLATE = """
                 }
 
                 if (token.length < 20) {
-                    showStatus('error', 'Token invalido!');
+                    showStatus('error', 'Token inválido!');
                     return;
                 }
 
@@ -325,7 +323,7 @@ HTML_TEMPLATE = """
                     const data = await response.json();
                     
                     if (data.running) {
-                        showStatus('running', 'Bot esta rodando!');
+                        showStatus('running', 'Bot está rodando!');
                         startBtn.disabled = true;
                         stopBtn.disabled = false;
                         startLogCheck();
@@ -338,6 +336,7 @@ HTML_TEMPLATE = """
 </html>
 """
 
+# ===================== FUNÇÃO RODAR BOT =====================
 def run_bot(token):
     """Roda o bot em uma thread separada"""
     global bot_process
@@ -357,7 +356,6 @@ def run_bot(token):
             env=env
         )
         
-        # Aguarda o bot terminar (nunca termina)
         bot_process.wait()
         
     except Exception as e:
@@ -365,8 +363,14 @@ def run_bot(token):
     finally:
         bot_process = None
 
+# ===================== ROTAS =====================
+@app.route('/')
+def index():
+    """Rota principal - PÁGINA INICIAL"""
+    return render_template_string(HTML_TEMPLATE)
+
 @app.route('/start', methods=['POST'])
-def start_bot():
+def start_bot_route():
     global bot_thread
     
     data = request.json
@@ -379,7 +383,6 @@ def start_bot():
         return jsonify({'error': 'Bot já está rodando'}), 400
     
     try:
-        # Inicia o bot em uma thread separada
         bot_thread = threading.Thread(target=run_bot, args=(token,))
         bot_thread.daemon = True
         bot_thread.start()
@@ -397,7 +400,7 @@ def start_bot():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/stop', methods=['POST'])
-def stop_bot():
+def stop_bot_route():
     global bot_process
     
     if bot_process:
@@ -417,13 +420,13 @@ def stop_bot():
     return jsonify({'error': 'Nenhum bot rodando'}), 400
 
 @app.route('/status', methods=['GET'])
-def status_bot():
+def status_bot_route():
     if bot_process and bot_process.poll() is None:
         return jsonify({'running': True})
     return jsonify({'running': False})
 
 @app.route('/logs', methods=['GET'])
-def get_logs():
+def get_logs_route():
     logs = []
     if bot_process and bot_process.poll() is None:
         try:
@@ -441,7 +444,8 @@ def get_logs():
 def health_check():
     return jsonify({'status': 'ok'}), 200
 
+# ===================== INICIAR =====================
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 10000))
     logger.info(f"Servidor rodando na porta {port}")
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
