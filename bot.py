@@ -51,8 +51,18 @@ state = {
     "ultima_msg_fila_id": None
 }
 
-# Criar bot
-bot = commands.Bot(command_prefix=PREFIX, self_bot=True, help_command=None)
+# Define as intenções (permissões que o bot vai usar)
+intents = discord.Intents.default()
+intents.message_content = True  # Permite ler conteúdo das mensagens
+intents.members = True          # Permite ver membros dos servidores
+
+# Cria o bot com as intenções
+bot = commands.Bot(
+    command_prefix=PREFIX, 
+    self_bot=True, 
+    help_command=None,
+    intents=intents  # ← ADICIONE ISSO
+)
 
 clicados = set()
 em_fila = set()
